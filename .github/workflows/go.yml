@@ -20,7 +20,7 @@ jobs:
       id: go
 
     - name: Get dependencies
-      run: go mod install
+      run: go mod download
 
     - name: Build Sub Packages
       run: go build -v ./..
