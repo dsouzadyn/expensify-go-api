@@ -1,5 +1,7 @@
 # Expensify-API (WIP)
 
+![Go](https://github.com/dsouzadyn/expensify-go-api/workflows/Go/badge.svg)
+
 The backend api for Expensify(an expense management app I am working on).
 This is also an exercise for me to flex my go-lang skills ;)
 
