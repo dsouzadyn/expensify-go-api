@@ -31,7 +31,7 @@ jobs:
         fi
 
     - name: Build Sub Packages
-      run: go build -v ./..
+      run: go build -v ./...
       
     - name: Build Server
       run: go build -v .
