@@ -32,12 +32,12 @@ jobs:
 
     - name: Build Sub Packages
       run: go build -v ./...
-    
+      
+    - name: Build Server
+      run: go build -v .
+      
     - name: Run Tests
       run: go test .
       env:
         GOTEST: true
-      
-    - name: Build Server
-      run: go build -v .
 
