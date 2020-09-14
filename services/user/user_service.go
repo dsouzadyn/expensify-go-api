@@ -17,7 +17,7 @@ type User struct {
 
 // Auth defines the login properties
 type Auth struct {
-	Username string `json:"username" binding:"requried"`
+	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -81,7 +81,7 @@ func AuthenticateUserHandler(c *gin.Context) {
 	db := utils.DBConn()
 	defer db.Close()
 
-	query := "SELECT password FROM user WHERE username = $1 OR email = $1"
+	query := "SELECT user_id, password FROM user WHERE username = ? OR email = ?"
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -91,8 +91,9 @@ func AuthenticateUserHandler(c *gin.Context) {
 	}
 
 	var hashedPassword string
-	row := db.QueryRow(query, json.Username)
-	err := row.Scan(&hashedPassword)
+	var userID uint64
+	row := db.QueryRow(query, json.Username, json.Username)
+	err := row.Scan(&userID, &hashedPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -101,9 +102,16 @@ func AuthenticateUserHandler(c *gin.Context) {
 	}
 
 	if utils.CheckPasswordHash(json.Password, hashedPassword) {
+		token, err := utils.CreateToken(userID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"username": json.Username,
-			"jwt":      "Todo",
+			"username":    json.Username,
+			"accessToken": token,
 		})
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{
