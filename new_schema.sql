@@ -5,5 +5,3 @@ GRANT DELETE ON expense.* TO 'expenseuser'@'localhost';
 GRANT INSERT ON expense.* TO 'expenseuser'@'localhost';
 GRANT SELECT ON expense.* TO 'expenseuser'@'localhost';
 GRANT UPDATE ON expense.* TO 'expenseuser'@'localhost';
-GRANT REFERENCES ON expense.* TO 'expenseuser'@'localhost';
-FLUSH privileges;

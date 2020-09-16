@@ -3,17 +3,10 @@ package user
 import (
 	"net/http"
 
+	"github.com/dsouzadyn/expensify-api/models"
 	"github.com/dsouzadyn/expensify-api/utils"
 	"github.com/gin-gonic/gin"
 )
-
-// User defines our user's properties
-type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
 
 // Auth defines the login properties
 type Auth struct {
@@ -23,86 +16,53 @@ type Auth struct {
 
 // CreateUserHandler handles creating a new user
 func CreateUserHandler(c *gin.Context) {
-	var json User
+	var user models.User
 	db := utils.DBConn()
-	defer db.Close()
 
-	query := "INSERT INTO user (username, email, password) VALUES (?, ?, ?)"
-
-	if err := c.ShouldBindJSON(&json); err != nil {
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	passwordHash, err := utils.HashPassword(json.Password)
-	if err != nil {
+	result := db.Create(&user)
+	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	stmt, err := db.Prepare(query)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	result, err := stmt.Exec(json.Username, json.Email, passwordHash)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": result.Error,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"username": json.Username,
-		"email":    json.Email,
-		"id":       id,
+		"id": user.ID,
 	})
 }
 
 // AuthenticateUserHandler handles user authentication
 func AuthenticateUserHandler(c *gin.Context) {
-	var json Auth
+	var authUser Auth
+	var user models.User
 	db := utils.DBConn()
-	defer db.Close()
 
-	query := "SELECT user_id, password FROM user WHERE username = ? OR email = ?"
-
-	if err := c.ShouldBindJSON(&json); err != nil {
+	if err := c.ShouldBindJSON(&authUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	var hashedPassword string
-	var userID uint64
-	row := db.QueryRow(query, json.Username, json.Username)
-	err := row.Scan(&userID, &hashedPassword)
-	if err != nil {
+	result := db.Where("username = ? OR email = ?", authUser.Username, authUser.Username).First(&user)
+
+	if result.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "No user exists with those credentials",
 		})
 		return
 	}
 
-	if utils.CheckPasswordHash(json.Password, hashedPassword) {
-		token, err := utils.CreateToken(userID)
+	if models.CheckPasswordHash(authUser.Password, user.Password) {
+		token, err := utils.CreateToken(user.ID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
@@ -110,7 +70,6 @@ func AuthenticateUserHandler(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"username":    json.Username,
 			"accessToken": token,
 		})
 	} else {

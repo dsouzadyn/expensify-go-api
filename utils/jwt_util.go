@@ -11,7 +11,7 @@ import (
 )
 
 // CreateToken creates a JWT Token given the user id
-func CreateToken(userID uint64) (string, error) {
+func CreateToken(userID uint) (string, error) {
 	var err error
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
