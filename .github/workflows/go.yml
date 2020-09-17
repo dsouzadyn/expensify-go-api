@@ -50,5 +50,7 @@ jobs:
 
       - name: Run Tests
         run: go test -v .
+        env:
+          GIN_MODE: "release"
 
 
