@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/dsouzadyn/expensify-api/utils"
 )
 
 func TestHealthRoute(t *testing.T) {
@@ -126,7 +128,7 @@ func TestAuthenticationRoute(t *testing.T) {
 	}
 }
 
-func ExchangeRateCreationRoute(t *testing.T) {
+func TestExchangeRateCreationRoute(t *testing.T) {
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"currency": "EUR",
 		"rate":     312341,
@@ -136,10 +138,24 @@ func ExchangeRateCreationRoute(t *testing.T) {
 		t.Fatalf("Expected no error while parsing json, got %v", err)
 	}
 
+	token, err := utils.CreateToken(1337)
+	if err != nil {
+		t.Fatalf("Could not create access token, error: %v", err)
+	}
+
 	testServer := httptest.NewServer(SetupServer())
 	defer testServer.Close()
 
-	resp, err := http.Post(fmt.Sprintf("%s/exhangerate/create", testServer.URL), "application/json", bytes.NewBuffer(requestBody))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/exchangerate/create", testServer.URL), bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -171,7 +187,7 @@ func ExchangeRateCreationRoute(t *testing.T) {
 	}
 }
 
-func CategoryCreationTest(t *testing.T) {
+func TestCategoryCreationRoute(t *testing.T) {
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"name": "test category",
 	})
@@ -180,10 +196,25 @@ func CategoryCreationTest(t *testing.T) {
 		t.Fatalf("Expected no error while parsing json, got %v", err)
 	}
 
+	token, err := utils.CreateToken(1337)
+	if err != nil {
+		t.Fatalf("Could not create access token, error: %v", err)
+	}
+
 	testServer := httptest.NewServer(SetupServer())
 	defer testServer.Close()
 
-	resp, err := http.Post(fmt.Sprintf("%s/category/create", testServer.URL), "application/json", bytes.NewBuffer(requestBody))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/category/create", testServer.URL), bytes.NewBuffer(requestBody))
+
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
