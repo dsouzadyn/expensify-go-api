@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/dsouzadyn/expensify-api/services/exchangerate"
 	"github.com/dsouzadyn/expensify-api/services/health"
 	"github.com/dsouzadyn/expensify-api/services/user"
 	"github.com/dsouzadyn/expensify-api/utils"
@@ -25,6 +26,10 @@ func SetupServer() *gin.Engine {
 	{
 		userRoutes.POST("/create", user.CreateUserHandler)
 		userRoutes.POST("/authenticate", user.AuthenticateUserHandler)
+	}
+	exchangeRateRoutes := r.Group("/exchangerate")
+	{
+		exchangeRateRoutes.POST("/create", exchangerate.CreateExchangeRateHandler)
 	}
 	return r
 }
