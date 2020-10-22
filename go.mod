@@ -16,7 +16,7 @@ require (
 	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
-	gorm.io/driver/mysql v1.0.2
+	gorm.io/driver/mysql v1.0.3
 	gorm.io/driver/sqlite v1.1.3
-	gorm.io/gorm v1.20.2
+	gorm.io/gorm v1.20.4
 )
